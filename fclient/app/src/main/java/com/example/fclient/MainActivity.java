@@ -17,7 +17,6 @@ public class MainActivity extends AppCompatActivity {
 //        System.loadLibrary("hello-jni");
     }
 
-//    private ActivityMainBinding binding;
 
 
     @Override
