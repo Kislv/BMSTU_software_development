@@ -1,53 +1,88 @@
 package com.example.fclient;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.TextView;
-import java.nio.charset.StandardCharsets;
+import android.widget.Toast;
 
-//import com.example.fclient.databinding.ActivityMainBinding;
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 
 public class MainActivity extends AppCompatActivity {
+
+    ActivityResultLauncher activityResultLauncher;
 
     // Used to load the 'native-lib' library on application startup.
     static {
         System.loadLibrary("native-lib");
         System.loadLibrary("mbedcrypto");
-//        System.loadLibrary("hello-jni");
     }
-
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        // Example of a call to a native method
-
-//        int res = initRng();
-//        byte[] v = randomBytes(10);
-////        System.out.println("[LOG] byte[] v = randomBytes(10):");
-//        byte[] key = new byte[16];
-//        key = "1234567812345678".getBytes(StandardCharsets.UTF_8);
-//        System.out.println("key = " + key);
-//        String strKey = new String(key, StandardCharsets.UTF_8);
-//        System.out.println("strKey = " + strKey + " Length = " + strKey.length());
-//
-//        byte[] data = "abc".getBytes(StandardCharsets.UTF_8);
-//        System.out.println("dataByte = " + data);
-//        byte[]enc = encrypt(key,data);
-//        System.out.println("enc = " + data);
-
-
-//        byte[]dec = decrypt(key, enc);
-//        System.out.println("key = " + key + " strKey = " + strKey + " Length = " + strKey.length() + " dataByte = " + data + " enc = " + enc + " dec = " + dec);
+        activityResultLauncher  = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                new ActivityResultCallback<ActivityResult>() {
+                    @Override
+                    public void onActivityResult(ActivityResult result) {
+                        if (result.getResultCode() == Activity.RESULT_OK) {
+                            Intent data = result.getData();
+                            // обработка результата
+                            String pin = data.getStringExtra("pin");
+                            Toast.makeText(MainActivity.this, pin,
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
 
 
-
-        TextView tv = findViewById(R.id.sample_text);
-        tv.setText(stringFromJNI());
+        int res = initRng();
+        byte[] rnd = randomBytes(10);
     }
+
+    public void onButtonClick(View v)
+    {
+        //Toast.makeText(this, "Hello", Toast.LENGTH_SHORT).show();
+
+        //byte[] key =
+        //        stringToHex("0123456789ABCDEF0123456789ABCDE0");
+        //byte[] enc = encrypt(key,
+        //        stringToHex("000000000000000102"));
+        //byte[] dec = decrypt(key, enc);
+        //String s = new String(Hex.encodeHex(dec)).toUpperCase();
+        //Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
+
+        Intent it = new Intent(this, PinpadActivity.class);
+        //startActivity(it);
+        activityResultLauncher.launch(it);
+    }
+
+
+    public static byte[] stringToHex(String s)
+    {
+        byte[] hex;
+        try
+        {
+            hex = Hex.decodeHex(s.toCharArray());
+        }
+        catch (DecoderException ex)
+        {
+            hex = null;
+        }
+        return hex;
+    }
+
 
     /**
      * A native method that is implemented by the 'native-lib' native library,
@@ -58,6 +93,5 @@ public class MainActivity extends AppCompatActivity {
     public static native byte[] randomBytes(int no);
     public static native byte[] encrypt(byte[] key, byte[] data);
     public static native byte[] decrypt(byte[] key, byte[] data);
-
 
 }
